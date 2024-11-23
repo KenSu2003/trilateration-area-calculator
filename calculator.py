@@ -25,11 +25,6 @@ def circle_intersection_points(circle1, circle2):
 
     return [(xs1, ys1), (xs2, ys2)]
 
-
-
-
-
-
 anchorA = [0, 0, 100]
 anchorB = [100, 0, 100]
 anchorC = [50, 100, 100]
@@ -45,5 +40,7 @@ Iac = Iac[1] # Pick the point far right point
 
 triangle = Polygon(Iab,Iac,Ibc)
 
-traingle_area = triangle.area
-print(traingle_area)
+print(triangle.vertices)
+
+traingle_area = abs(triangle.area)
+print(f"{traingle_area:.2f}")

@@ -47,7 +47,7 @@ def find_polygon_intersection(circles):
         sum(p[1] for p in points) / len(points),
     )
     points = sorted(points, key=lambda p: math.atan2(p[1] - centroid[1], p[0] - centroid[0]))
-    # print(points) only printing one
+    print(points) # only printing one
     return Polygon(points)
 
 def calculate_area_of_intersection(circles):
@@ -61,6 +61,8 @@ def calculate_area_of_intersection(circles):
 
     # Calculate polygon area
     polygon_area = polygon.area
+    # print(polygon.vertices)
+    print(polygon_area)
 
     # Calculate the circle arc areas
     arc_area = 0
@@ -101,7 +103,7 @@ def plot_circles_and_intersection(circles, polygon):
     plt.show()
 
 # Example usage:
-circles = [(0, 0, 100), (70, 0, 100), (0, 70, 100)]  # (x, y, radius) for each circle
+circles = [(0, 0, 100), (70, 0, 100), (0, 150, 100)]  # (x, y, radius) for each circle
 area = calculate_area_of_intersection(circles)
 print(f"The area of trilateration is: {area:.2f}")
 
