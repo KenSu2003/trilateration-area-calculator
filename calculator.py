@@ -58,7 +58,7 @@ def find_triangle(anchors):
     triangle = Polygon(vpA, vpB, vpC)
     return valid_points, triangle
 
-def find_area(polygon):
+def find_triangle_area(polygon):
     polygon_area = abs(polygon.area)
     print(f"Polygon Area = {polygon_area:.2f}")
     return polygon_area
@@ -93,11 +93,37 @@ def plot_area(valid_points):
     plt.grid(True)
     plt.show()
      
+# https://www.cuemath.com/geometry/segment-of-a-circle/
+# https://www.youtube.com/watch?v=vVAl1jyL8X0
+def calculate_segment_area(circle, point1, point2):
+    """Calculate the area of the circular segment between two points on a circle."""
+    cx, cy, r = circle
+    x1, y1 = point1
+    x2, y2 = point2
 
+    # Calculate the angle subtended by the chord
+    dx1, dy1 = x1 - cx, y1 - cy
+    dx2, dy2 = x2 - cx, y2 - cy
+    angle = math.acos((dx1 * dx2 + dy1 * dy2) / (math.sqrt(dx1**2 + dy1**2) * math.sqrt(dx2**2 + dy2**2)))
+
+    # Segment area formula
+    return 0.5 * r**2 * (angle - math.sin(angle))
+
+# 1. Set Anchors
 anchorA = [0, 0, 100]
 anchorB = [70, 0, 100]
 anchorC = [0, 70, 100]
 anchors = [anchorA,anchorB,anchorC]
+
+# 2. Calculate the area of the triangle
 vps, triangle = find_triangle(anchors)
-triangle_area = find_area(triangle)
+triangle_area = find_triangle_area(triangle)
+
+# 3. Calculatethe area of the half_ovals
+
+
 plot_area(vps)
+
+
+
+
