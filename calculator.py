@@ -58,9 +58,9 @@ def find_triangle(anchors):
     triangle = Polygon(vpA, vpB, vpC)
     return valid_points, triangle
 
-def find_triangle_area(polygon):
+def calc_triangle_area(polygon):
     polygon_area = abs(polygon.area)
-    print(f"Polygon Area = {polygon_area:.2f}")
+    print(f"Triangle Area: {polygon_area:.2f}")
     return polygon_area
     
 def plot_area(valid_points):
@@ -95,19 +95,48 @@ def plot_area(valid_points):
      
 # https://www.cuemath.com/geometry/segment-of-a-circle/
 # https://www.youtube.com/watch?v=vVAl1jyL8X0
-def calculate_segment_area(circle, point1, point2):
-    """Calculate the area of the circular segment between two points on a circle."""
+def calculate_segment_area(circle, point1, point2, angle=None):
+    """Calculate the area of a circular segment."""
     cx, cy, r = circle
-    x1, y1 = point1
-    x2, y2 = point2
+
+    # If the angle (in radians) is given, use it directly
+    if angle is not None:
+        if angle > 2 * math.pi:  # Check for degrees
+            raise ValueError("Angle must be in radians. Convert degrees to radians before passing.")
+        return 0.5 * r**2 * (angle - math.sin(angle))
+
+    # Validate input points
+    if (point1[0] == cx and point1[1] == cy) or (point2[0] == cx and point2[1] == cy):
+        raise ValueError("Points cannot be the same as the center of the circle.")
+
+    # Calculate vectors from the circle center to the points
+    dx1, dy1 = point1[0] - cx, point1[1] - cy
+    dx2, dy2 = point2[0] - cx, point2[1] - cy
+
+    # Ensure the points lie on the circle
+    # if not math.isclose(dx1**2 + dy1**2, r**2, rel_tol=1e-5) or \
+    #    not math.isclose(dx2**2 + dy2**2, r**2, rel_tol=1e-5):
+    #     raise ValueError("Points must lie on the circumference of the circle.")
 
     # Calculate the angle subtended by the chord
-    dx1, dy1 = x1 - cx, y1 - cy
-    dx2, dy2 = x2 - cx, y2 - cy
-    angle = math.acos((dx1 * dx2 + dy1 * dy2) / (math.sqrt(dx1**2 + dy1**2) * math.sqrt(dx2**2 + dy2**2)))
+    dot_product = dx1 * dx2 + dy1 * dy2
+    magnitude1 = math.sqrt(dx1**2 + dy1**2)
+    magnitude2 = math.sqrt(dx2**2 + dy2**2)
+    angle = math.acos(dot_product / (magnitude1 * magnitude2))
 
+    print(point1,point2, angle)
     # Segment area formula
     return 0.5 * r**2 * (angle - math.sin(angle))
+
+def calc_segments_area(circles):
+    # Calculate segment areas
+    segment_area = 0
+    for circle, (p1, p2) in zip(circles, [(valid_points[0], valid_points[1]),
+                                                                (valid_points[1], valid_points[2]),
+                                                                (valid_points[2], valid_points[0])]):
+        segment_area += calculate_segment_area(circle, p1, p2)
+    print("Segment Area:",segment_area)
+    return segment_area
 
 # 1. Set Anchors
 anchorA = [0, 0, 100]
@@ -116,13 +145,16 @@ anchorC = [0, 70, 100]
 anchors = [anchorA,anchorB,anchorC]
 
 # 2. Calculate the area of the triangle
-vps, triangle = find_triangle(anchors)
-triangle_area = find_triangle_area(triangle)
+valid_points, triangle = find_triangle(anchors)
+triangle_area = calc_triangle_area(triangle)
 
 # 3. Calculatethe area of the half_ovals
+segments_area = calc_segments_area(anchors)
 
+total_area = triangle_area+segments_area
+print(f"Total Area: {total_area:.2f}")
 
-plot_area(vps)
+plot_area(valid_points)
 
 
 
