@@ -1,127 +1,111 @@
 import math
-from shapely.geometry import Point, Polygon
-from shapely.ops import unary_union
-import matplotlib.pyplot as plt
+from sympy import Point, Polygon, pi, sin, acos
+from testbench import draw_circle_with_points
+from calculator import find_triangle
 
-def circle_intersection_points(circle1, circle2):
-    """Find intersection points of two circles."""
-    x1, y1, r1 = circle1
-    x2, y2, r2 = circle2
-    dx, dy = x2 - x1, y2 - y1
-    d = math.sqrt(dx ** 2 + dy ** 2)
-
-    if d > r1 + r2 or d < abs(r1 - r2):
-        return []  # No intersection or one circle is inside the other
-
-    a = (r1 ** 2 - r2 ** 2 + d ** 2) / (2 * d)
-    h = math.sqrt(r1 ** 2 - a ** 2)
-
-    xm = x1 + a * dx / d
-    ym = y1 + a * dy / d
-
-    xs1 = xm + h * dy / d
-    ys1 = ym - h * dx / d
-
-    xs2 = xm - h * dy / d
-    ys2 = ym + h * dx / d
-
-    return [(xs1, ys1), (xs2, ys2)]
-
-def find_polygon_intersection(circles):
-    """Find the polygon intersection of multiple circles."""
-    points = []
-    for i in range(len(circles)):
-        for j in range(i + 1, len(circles)):
-            points += circle_intersection_points(circles[i], circles[j])
-
-    # Keep only points inside all circles
-    def is_point_inside_all_circles(point):
-        x, y = point
-        return all((x - cx) ** 2 + (y - cy) ** 2 <= r ** 2 for cx, cy, r in circles)
-
-    points = [p for p in points if is_point_inside_all_circles(p)]
-
-    # Sort points counterclockwise around the centroid
-    if points:
-        centroid = (
-            sum(p[0] for p in points) / len(points),
-            sum(p[1] for p in points) / len(points),
-        )
-        points = sorted(points, key=lambda p: math.atan2(p[1] - centroid[1], p[0] - centroid[0]))
-
-    return Polygon(points) if points else Polygon()
-
-def calculate_segment_area(circle, point1, point2):
-    """Calculate the area of the circular segment between two points on a circle."""
+def calculate_segment_area(circle, point1, point2, angle=None):
+    """Calculate the area of a circular segment."""
     cx, cy, r = circle
-    x1, y1 = point1
-    x2, y2 = point2
 
-    # Calculate the chord length
-    chord_length = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+    # If the angle (in radians) is given, use it directly
+    if angle is not None:
+        return 0.5 * r**2 * (angle - sin(angle))
 
-    # Calculate the angle subtended by the chord at the center of the circle
-    angle = 2 * math.asin(chord_length / (2 * r))
+    # Adjust points to ensure they lie on the circle
+    point1 = adjust_to_circle(point1, circle)
+    point2 = adjust_to_circle(point2, circle)
 
-    # Area of the circular segment
-    segment_area = 0.5 * r ** 2 * (angle - math.sin(angle))
+    # Calculate vectors from the circle center to the points
+    dx1, dy1 = point1[0] - cx, point1[1] - cy
+    dx2, dy2 = point2[0] - cx, point2[1] - cy
+
+    # Calculate the angle subtended by the chord
+    dot_product = dx1 * dx2 + dy1 * dy2
+    magnitude1 = math.sqrt(dx1**2 + dy1**2)
+    magnitude2 = math.sqrt(dx2**2 + dy2**2)
+    angle = math.acos(dot_product / (magnitude1 * magnitude2))
+
+    # Segment area formula
+    return 0.5 * r**2 * (angle - math.sin(angle))
+
+
+def adjust_to_circle(point, circle):
+    """Adjust a point to lie exactly on the circle's circumference."""
+    cx, cy, r = circle
+    dx, dy = point[0] - cx, point[1] - cy
+    magnitude = math.sqrt(dx**2 + dy**2)
+    if magnitude == 0:
+        raise ValueError("Point cannot coincide with the circle center.")
+    scale = r / magnitude
+    return (cx + dx * scale, cy + dy * scale)
+
+
+def calc_segments_area(circles, valid_points):
+    """Calculate the total area of all circular segments."""
+    segment_area = 0
+
+    # Correct mapping of circles to points
+    circle_points_map = [
+        (circles[0], (valid_points[0], valid_points[1])),  # Points for Circle 1
+        (circles[2], (valid_points[1], valid_points[2])),  # Points for Circle 2
+        (circles[1], (valid_points[2], valid_points[0]))   # Points for Circle 3
+    ]
+
+
+    # Debug: Print circle-to-point mapping
+    print("Circle to Points Mapping:")
+    for i, (circle, (p1, p2)) in enumerate(circle_points_map):
+        print(f"  Circle {i+1}: {circle}")
+        print(f"    Point 1: {p1}")
+        print(f"    Point 2: {p2}")
+        draw_circle_with_points(circle, (p1, p2), title="Validating Points on Circle")
+
+
+    for circle, (p1, p2) in circle_points_map:
+        print(f"\nProcessing Circle: {circle}")
+        print(f"Original Points: {p1}, {p2}")
+
+        # Adjust points if necessary
+        p1 = adjust_to_circle(p1, circle)
+        p2 = adjust_to_circle(p2, circle)
+        print(f"Adjusted Points: {p1}, {p2}")
+
+        # Calculate segment area
+        segment_area += calculate_segment_area(circle, p1, p2)
+
+    print(f"\nTotal Segment Area: {segment_area:.5f}")
     return segment_area
 
-def calculate_area_of_intersection_with_segments(circles):
-    """Calculate the total area of intersection, including segments."""
-    polygon = find_polygon_intersection(circles)
 
-    # Polygon area
-    polygon_area = polygon.area if not polygon.is_empty else 0
-    print(polygon_area)
+def calculate_total_overlap_area(triangle_area, segment_area):
+    """Calculate the total overlap area of the three circles."""
+    return triangle_area + segment_area
 
-    # Segment areas
-    segment_area = 0
-    if not polygon.is_empty:
-        coords = list(polygon.exterior.coords)
 
-        for i in range(len(coords) - 1):
-            point1 = coords[i]
-            point2 = coords[i + 1]
+# Example Data
+radius = 100
+circle1 = [0, 0, radius]
+circle2 = [100, 0, radius]
+circle3 = [0, 100, radius]
+circles = [circle1, circle2, circle3]
 
-            for circle in circles:
-                cx, cy, r = circle
-                if ((point1[0] - cx) ** 2 + (point1[1] - cy) ** 2 <= r ** 2 and
-                    (point2[0] - cx) ** 2 + (point2[1] - cy) ** 2 <= r ** 2):
-                    segment_area += calculate_segment_area(circle, point1, point2)
-                    break
+valid_points, triangle = find_triangle(circles)
 
-    return polygon_area + segment_area
 
-def plot_circles_and_intersection_with_segments(circles, polygon):
-    """Plot the circles and shade the full intersection area."""
-    fig, ax = plt.subplots()
+# valid_points = [
+#     (35.0, 93.67496997597597),  # Intersection Point 1
+#     (93.67496997597597, 35.0),  # Intersection Point 2
+#     (-26.441028637222537, -26.441028637222537)  # Intersection Point 3
+# ]
 
-    # Plot each circle
-    for cx, cy, r in circles:
-        circle = plt.Circle((cx, cy), r, fill=False, linestyle="--")
-        ax.add_artist(circle)
-        ax.plot(cx, cy, 'o', label=f"Circle Center ({cx}, {cy})")
+# Calculate the area of the triangle formed by valid points using Sympy
+triangle = Polygon(Point(valid_points[0]), Point(valid_points[1]), Point(valid_points[2]))
+triangle_area = float(triangle.area)
+print(f"Triangle Area: {triangle_area:.5f}")
 
-    # Plot and shade the intersection polygon
-    if not polygon.is_empty and polygon.is_valid:
-        x, y = polygon.exterior.xy
-        ax.fill(x, y, 'g', alpha=0.4, label="Intersection Area (Shaded)")
-        ax.plot(x, y, 'g-', label="Intersection Polygon")
+# Calculate the total segment area
+segments_area = calc_segments_area(circles, valid_points)
 
-    # Set plot limits and labels
-    ax.set_xlim(-300, 300)
-    ax.set_ylim(-300, 300)
-    ax.set_aspect('equal', adjustable='datalim')
-    ax.legend()
-    plt.title("Circles and Intersection Area (Including Segments)")
-    plt.show()
-
-# Example usage:
-circles = [(0, 0, 100), (70, 0, 100), (0, 70, 100)]  # (x, y, radius) for each circle
-area = calculate_area_of_intersection_with_segments(circles)
-print(f"The area of intersection is: {area:.2f}")
-
-# Plot the circles and the intersection polygon
-polygon = find_polygon_intersection(circles)
-plot_circles_and_intersection_with_segments(circles, polygon)
+# Calculate the total overlap area
+total_overlap_area = calculate_total_overlap_area(triangle_area, segments_area)
+print(f"\nTotal Overlap Area: {total_overlap_area:.5f}")
