@@ -103,7 +103,7 @@ def plot_circles_and_intersection(circles, polygon):
     plt.show()
 
 # Example usage:
-circles = [(0, 0, 100), (70, 0, 100), (0, 150, 100)]  # (x, y, radius) for each circle
+circles = [(0, 0, 100), (70, 0, 100), (0, 70, 100)]  # (x, y, radius) for each circle
 area = calculate_area_of_intersection(circles)
 print(f"The area of trilateration is: {area:.2f}")
 
