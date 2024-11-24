@@ -46,9 +46,33 @@ https://www.benfrederickson.com/calculating-the-intersection-of-3-or-more-circle
 """
 
 # 1. Set Anchors
-anchorA = [0, 0, 1]
-anchorB = [1, 0, 1]
-anchorC = [0, 1, 1]
+# anchorA = [0, 0, 1]
+# anchorB = [1, 0, 1]
+# anchorC = [0, 1, 1]
+# anchors = [anchorA,anchorB,anchorC]
+
+# # 2. Calculate the area of the triangle
+# valid_points, triangle = find_triangle(anchors)
+# triangle_area = calc_triangle_area(triangle)
+
+# # 3. Calculate the area of the segments
+# segments_area = calc_segments_area(anchors, valid_points)
+
+# # 4. Calculate the total area
+# total_area = triangle_area+segments_area
+
+# print(f"Triangle Area: {triangle_area:.5f}")
+# print(f"Segments Area: {segments_area:.5f}")
+# print(f"Total Area: {total_area:.5f}")
+
+# # 5. Plot the trilateration
+# plot_area(anchors, valid_points)
+
+
+# 1. Set Anchors
+anchorA = [0.36, 0.02, 1.07]
+anchorB = [0.01, 0.79, 1.18]
+anchorC = [0.78, 0.81, 1.08]
 anchors = [anchorA,anchorB,anchorC]
 
 # 2. Calculate the area of the triangle

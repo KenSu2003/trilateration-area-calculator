@@ -32,10 +32,11 @@ def circle_intersection_points(circle1, circle2):
     return [(xs1, ys1), (xs2, ys2)]
 
 def is_point_inside_circle(point, circle):
-    """Check if a point is inside a circle."""
-    x, y = point
+    """Check if a point lies inside or on the boundary of a circle."""
     cx, cy, r = circle
-    return (x - cx) ** 2 + (y - cy) ** 2 <= r ** 2
+    dx, dy = point[0] - cx, point[1] - cy
+    distance_squared = dx**2 + dy**2
+    return distance_squared <= r**2 + 1e-5  # Allow slight tolerance
 
 def find_triangle(anchors):
     anchorA,anchorB,anchorC = anchors
@@ -51,8 +52,14 @@ def find_triangle(anchors):
             is_point_inside_circle(point, anchorB) and \
             is_point_inside_circle(point, anchorC):
                 valid_points.append(point)
+    if len(valid_points) < 3:
+        print("Error: Not enough valid points found for the triangle.")
+        print(f"Valid Points: {valid_points}")
+        print(f"Intersection Points: {intersections}")
+        raise ValueError("Cannot form a triangle with the given circles.")
     vpA, vpB, vpC = valid_points
     triangle = Polygon(vpA, vpB, vpC)
+    # triangle = Polygon(points in valid_points)
     return valid_points, triangle
 
 def calc_triangle_area(polygon):
@@ -81,8 +88,8 @@ def plot_area(circles, valid_points):
     # Shade the triangle
     ax.fill(triangle_x, triangle_y, color='green', alpha=0.4, label="Shaded Triangle")
 
-    ax.set_xlim(-150, 250)
-    ax.set_ylim(-150, 250)
+    ax.set_xlim(-250, 250)
+    ax.set_ylim(-250, 250)
     ax.set_aspect('equal', adjustable='datalim')
     ax.legend()
     plt.title("Valid Intersection Points and Triangle")
