@@ -2,8 +2,8 @@ from function_library import *
 
 # 1. Set Anchors
 anchorA = [0, 0, 100]
-anchorB = [100, 0, 100]
-anchorC = [50, 100, 100]
+anchorB = [70, 0, 100]
+anchorC = [0, 70, 100]
 anchors = [anchorA,anchorB,anchorC]
 
 # 2. Calculate the area of the triangle
