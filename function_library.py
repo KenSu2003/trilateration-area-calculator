@@ -86,7 +86,7 @@ def plot_area(circles, valid_points):
     ax.plot(triangle_x, triangle_y, 'g-', label="Triangle Edges")
 
     # Shade the triangle
-    ax.fill(triangle_x, triangle_y, color='green', alpha=0.4, label="Shaded Triangle")
+    # ax.fill(triangle_x, triangle_y, color='green', alpha=0.4, label="Shaded Triangle")
 
     ax.set_xlim(-250, 250)
     ax.set_ylim(-250, 250)
